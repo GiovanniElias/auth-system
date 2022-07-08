@@ -1,4 +1,5 @@
 
+from exceptions.exceptions import UserNotFoundException
 import psycopg2
 import contextlib
 from config import DB_CONFIG, DB_INIT
@@ -13,7 +14,9 @@ class Query:
         self.connection.close()
     
     def _query(self,query, args=None):
-        return self.cursor.execute(query) if not args else self.cursor.execute(query, args)
+        if not args:
+            return self.cursor.execute(query)  
+        return self.cursor.execute(query, args)
 
 
 class InputQuery(Query):
@@ -28,17 +31,19 @@ class InputQuery(Query):
 
 class OutputQuery(Query):
     def fetchone(self, query, args=None):
-        query_result = self._query(query, args)
-        if not query_result:
-            return False
+        self._query(query, args)
+        query_result = self.cursor.fetchone()
         self.close()
-        return query_result.fetchone()
+        if not query_result:
+            raise UserNotFoundException()
+        return query_result
 
     def fetchall(self, query, args=None):
-        query_result = self._query(query, args)
-        if not query_result:
-            return False
+        self._query(query, args)
+        query_result = self.cursor.fetchall()
         self.close()
-        return query_result.fetchall()
+        if not query_result:
+            raise UserNotFoundException()
+        return query_result
 
 

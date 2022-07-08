@@ -17,38 +17,46 @@ app = Flask(__name__)
 app.config.from_object('config')
 CORS(app, supports_credentials=True)
 
+
 def service_manager(auth_service: AuthService) -> Response:
-    result = Result()
     try:
         auth_service.perform_checks()
         auth_service.sign_user()
-        result.succeded(200, messages.NEW_USER)
     except InvalidRequestException as err:
-        result.failed(err.code, err.message)
+        auth_service.result.failed(err.code, err.message)
     except Exception as err:
         print(err)
-        result.failed(500, messages.GENERIC_ERROR)
+        auth_service.result.failed(500, messages.GENERIC_ERROR)
 
-    response = make_response(jsonify(result.__dict__), result.status_code)
+    response = make_response(
+        jsonify(auth_service.result.__dict__),
+        auth_service.result.status_code)
 
     return response
 
+
 @app.route('/login', methods=['POST'])
 def login():
+    result = Result()
     request_info = RequestInfo(dict(request.json))
-    validator = LoginValidator()
+    login_validator = LoginValidator(request_info)
     token_service = TokenService()
-    login_service = LoginService(request_info, validator, token_service)
+    login_service = LoginService(
+        request_info, login_validator, result,token_service)
 
     return service_manager(login_service)
 
+
 @app.route('/register', methods=['POST'])
 def register():
+    result = Result()
     request_info = RequestInfo(dict(request.json))
     registration_validator = RegistrationValidator(request_info)
-    registration_service = RegistrationService(request_info, registration_validator)
+    registration_service = RegistrationService(
+        request_info, registration_validator, result)
 
     return service_manager(registration_service)
+
 
 if __name__ == '__main__':
     InputQuery().execute(DB_INIT)

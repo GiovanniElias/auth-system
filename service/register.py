@@ -8,14 +8,13 @@ from service.auth import AuthService
 from config import DB_INIT, CREATE_USER
 from dbengine import InputQuery
 from models.user import User
-import uuid
-import hashlib
-
+from utils.result import Result
 
 class RegistrationService(AuthService):
-    def __init__(self, user_info: RequestInfo, validator: Validator):
+    def __init__(self, user_info: RequestInfo, validator: Validator, result: Result):
         self.user_info = user_info
         self.validator = validator
+        self.result = result
 
     def perform_checks(self):
         self.validator._perform_checks()

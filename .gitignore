@@ -50,7 +50,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-
+*.cfg
 # Translations
 *.mo
 *.pot
@@ -130,4 +130,3 @@ dmypy.json
 .pyre/
 .db
 config.py
-pyvenv.cfg

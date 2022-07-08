@@ -16,3 +16,4 @@ class Cryptography:
         return f'{salt}:{hashed_password}'
 
     
+    

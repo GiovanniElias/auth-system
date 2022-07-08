@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-
+from models.requestinfo import RequestInfo
+from models.user import User
 from requests import request
 from exceptions.exceptions import *
 import re
-from config import BAD_REQUEST_MESSAGE
-
+from utils.messages import USER_NOT_FOUND, INVALID_REQUEST
 
 class Validator(ABC):
     @abstractmethod
@@ -12,44 +12,38 @@ class Validator(ABC):
         pass
 
 class LoginValidator(Validator):
-    def perform_checks(self, user_info):
-        self.user_info = user_info
-        self._validate_request_body_structure()
-        self._validate_email()
-        self._validate_username()
-        
+
+    def __init__(self, request_info: RequestInfo) -> None:
+        self.request_info = request_info
 
     def _validate_request_body_structure(self):
-        if not {'email', 'password'} == self.user_info.properties():
-            raise InvalidRequestException()
+        if not ['email', 'password'] == self.request_info.properties():
+            raise InvalidRequestException(INVALID_REQUEST)   
     
-    def _validate_email(self):
-        valid_email_pattern = "^[a-zA-Z0-9-_]+@[a-zA-Z0-9]+\.[a-z]{1,3}$"
-
-        if not re.match(valid_email_pattern,self.user_info.email):
-            raise InvalidRequestException()
-    
-    
-    def _validate_username(self):
-        if not self.user_info.username:
-            raise InvalidRequestException()
-
-
-class RegistrationValidator(Validator):
-    def __init__(self, user_info) -> None:
-        self.user_info = user_info
-    
-    def validate_request_structure(self):
-        correct_structure = ["email", "password", "confirm_password"]
-        request_structure = self.user_info.properties()
-        if not (all(item in correct_structure for item in request_structure) and len(correct_structure) == len(request_structure)):
-            raise InvalidRequestException(BAD_REQUEST_MESSAGE)
-
-    def validate_password(self):
-        if not self.user_info.password == self.user_info.confirm_password:
-            raise InvalidRequestException(BAD_REQUEST_MESSAGE)
+    def _validate_fields(self):
+        if not self.request_info.email or not self.request_info.password:
+            raise InvalidRequestException(INVALID_REQUEST)
 
     def _perform_checks(self):
-        self.validate_request_structure()
-        self.validate_password()
+        self._validate_request_body_structure()
+        self._validate_fields()
+        
+
+class RegistrationValidator(Validator):
+    def __init__(self, request_info:RequestInfo) -> None:
+        self.request_info = request_info
+    
+    def _validate_request_body_structure(self):
+        correct_structure = ["email", "password", "confirm_password"]
+        request_structure = self.request_info.properties()
+        if not (all(item in correct_structure for item in request_structure) and len(correct_structure) == len(request_structure)):
+            raise InvalidRequestException(INVALID_REQUEST)
+
+    def _validate_password(self):
+        if not self.request_info.password == self.request_info.confirm_password:
+            raise InvalidRequestException(INVALID_REQUEST)
+
+    def _perform_checks(self):
+        self._validate_request_body_structure()
+        self._validate_password()
 

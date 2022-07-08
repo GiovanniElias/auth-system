@@ -3,7 +3,7 @@ from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime
 import uuid
-from config import DB_INIT, CREATE_USER
+from config import DB_INIT, CREATE_USER, FIND_USER_BY_EMAIL, FIND_USER_BY_ID
 from dbengine import InputQuery, OutputQuery
 from service.crypto import Cryptography
 
@@ -26,3 +26,11 @@ class User:
 
     def insert(self):
         InputQuery().execute(CREATE_USER, self.properties())
+
+    @staticmethod
+    def exists(**kwargs):
+        if 'email' in kwargs.keys():
+            return OutputQuery().fetchone(FIND_USER_BY_EMAIL, [kwargs.get('email')])
+        elif 'id' in kwargs.keys():
+            return OutputQuery().fetchone(FIND_USER_BY_ID, kwargs.get('id'))
+    
