@@ -1,5 +1,6 @@
 import re
-from flask import Flask, request, jsonify, make_response, Response
+from flask import Flask, redirect, request, jsonify, make_response, Response
+import flask
 from flask_cors import CORS
 from service.auth import AuthService
 from service.login import LoginService
@@ -7,7 +8,7 @@ from service.token_factory import TokenService
 from models.requestinfo import RequestInfo
 from utils.validator import Validator, LoginValidator, RegistrationValidator
 from service.register import RegistrationService
-from utils.result import Result
+from models.result import Result
 import utils.messages as messages
 from exceptions.exceptions import InvalidRequestException
 from dbengine import InputQuery, OutputQuery
@@ -42,10 +43,24 @@ def login():
     login_validator = LoginValidator(request_info)
     token_service = TokenService()
     login_service = LoginService(
-        request_info, login_validator, result,token_service)
+        request_info, login_validator, result, token_service)
 
-    return service_manager(login_service)
+    response = service_manager(login_service)
 
+    if dict(response.json).get('status_code') == 200:
+        cookie = dict(
+            key=messages.COOKIE_KEY,
+            value=dict(response.json).get("body")["token"],
+            max_age=None,
+            expires=None,
+            domain=None,
+            secure=True,
+            samesite="None",
+            httponly=True
+        )
+    response.set_cookie(**cookie)
+
+    return response
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -58,6 +73,16 @@ def register():
     return service_manager(registration_service)
 
 
+@app.route('/validate', methods=['POST'])
+def validate():
+    result = Result()
+    token_service = TokenService()
+    token_service.validate(request, result)
+    return make_response(
+        jsonify(result.__dict__),
+        result.status_code)
+
+
 if __name__ == '__main__':
     InputQuery().execute(DB_INIT)
-    app.run(debug=False)
+    app.run(debug=True)

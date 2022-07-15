@@ -16,3 +16,5 @@ COOKIE_KEY = "session_token"
 TOKEN_OK = "Token autheticated."
 
 USER_NOT_FOUND = "The user credentials do not exist. Check and try again."
+
+UNAUTHORIZED_REQUEST = "The request was not authorized. Please use a valid JWT session token."

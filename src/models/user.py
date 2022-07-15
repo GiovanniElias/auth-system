@@ -1,11 +1,10 @@
-import dbengine
+
 from enum import Enum
 from dataclasses import dataclass, field
 from datetime import datetime
-import uuid
 from config import DB_INIT, CREATE_USER, FIND_USER_BY_EMAIL, FIND_USER_BY_ID
 from dbengine import InputQuery, OutputQuery
-from service.crypto import Cryptography
+import service.crypto as crypto
 
 class UserStatus(Enum):
     Locked = 0
@@ -14,7 +13,7 @@ class UserStatus(Enum):
 
 @dataclass
 class User:    
-    id: str = field(default_factory=Cryptography.generate_uuid)
+    id: str = field(default_factory=crypto.generate_uuid)
     created_at: int = int(datetime.timestamp(datetime.now()))
     status: int = UserStatus.Active.value
     email: str = ""
@@ -33,4 +32,9 @@ class User:
             return OutputQuery().fetchone(FIND_USER_BY_EMAIL, [kwargs.get('email')])
         elif 'id' in kwargs.keys():
             return OutputQuery().fetchone(FIND_USER_BY_ID, kwargs.get('id'))
+            
+    @staticmethod
+    def get_by_email(email: str):
+        query_result = OutputQuery().fetchone(FIND_USER_BY_EMAIL, [email])
+        return User(*query_result)
     

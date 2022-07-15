@@ -5,6 +5,7 @@ class ExceptionCodeMap(dict):
     ResourceNotFoundException = 404
     UserNotFoundException = 401
     WrongPasswordException = 403
+    UnathorizedRequestException = 401
 
 class ExceptionBase(Exception): 
     def __init__(self, message):
@@ -28,3 +29,6 @@ class WrongPasswordException(ExceptionBase):
     def __init__(self, message):
         super().__init__(message)
 
+class UnauthorizedRequestException(ExceptionBase):
+    def __init__(self, message):
+        super().__init__(message)

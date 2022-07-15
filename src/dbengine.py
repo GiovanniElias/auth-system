@@ -1,7 +1,6 @@
 
 from exceptions.exceptions import UserNotFoundException
 import psycopg2
-import contextlib
 from config import DB_CONFIG, DB_INIT
 
 class Query:

@@ -36,6 +36,7 @@ class RegistrationValidator(Validator):
     def _validate_request_body_structure(self):
         correct_structure = ["email", "password", "confirm_password"]
         request_structure = self.request_info.properties()
+        # set() == set()
         if not (all(item in correct_structure for item in request_structure) and len(correct_structure) == len(request_structure)):
             raise InvalidRequestException(INVALID_REQUEST)
 
